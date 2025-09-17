@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-!vp1j0_-y@n*^20q#&s(60g9hdxnnuo+lyllzri!)wv2c3ef6b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "192.168.0.50", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "192.168.0.50", "127.0.0.1", "tapam-pay.onrender.com"]
 
 CORS_ALLOW_CREDENTIALS = True
 # Application definition
