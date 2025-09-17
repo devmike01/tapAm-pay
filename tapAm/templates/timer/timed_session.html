@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+
+    <meta charset="UTF-8">
+  <link rel="stylesheet" href="./css/main.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"/>
+
+    <title>Chat Room</title>
+</head>
+<body class="bg-primary">
+<nav class="navbar navbar-light bg-primary">
+  <a class="navbar-brand" href="#">
+    <img src="/docs/4.0/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+    Timney
+  </a>
+</nav>
+<div class="w-100" style="background-color: #eee; ">
+     <div class="row mx-auto card-row bg-primary">
+    {{ session_room_name|json_script:"session-room-name"}}
+          <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">
+      <h6 class="display-6 text-left">Session Started</h6>
+    <p id="timer"></p>
+      <div class="display-6 text-left">
+    <input id="session-start" type="button" class="btn btn-primary" value="Start"/>
+    <input id="session-stop" type="button" value="Stop" class="btn btn-danger"/>
+      </div>
+  </div>
+     </div>
+    </div>
+    <script>
+        const roomName = JSON.parse(document.getElementById('session-room-name').textContent);
+
+        const sessionSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/session/'
+        + roomName
+        + '/'
+        );
+
+
+        document.getElementById("timer").innerHTML =
+        `<div class="row">${styleStr("00","Hours")} ${styleStr("00", "Minutes")} ${styleStr("00", "Seconds")}</div>`;
+
+         func = function(){
+          sessionSocket.send(JSON.stringify({
+                'cmd': message
+            }));
+         };
+
+        sessionSocket.onmessage = function(e){
+            const data = JSON.parse(e.data);
+            const timeSeg = data.message.split(":");
+            document.getElementById("timer").innerHTML =
+            `<div class="row">${styleStr(timeSeg[0], "Hours")} ${styleStr(timeSeg[1], "Minutes")} ${styleStr(timeSeg[2], "Seconds")}</div>`;
+        };
+        sessionSocket.onclose = function(e){
+            console.error('Chat socket closed unexpected');
+        };
+
+        function styleStr(value, unit){
+            return `<div class="col-sm-3">
+            <div class="card">
+            <div class="card-body">
+
+        <h2 class="card-title display-1">${value}</h2>
+        <p>${unit}</p>
+             </div>
+            </div>
+            </div>
+            `
+        }
+
+document.querySelector('#session-stop').onclick = function(e){
+    const message = "[STOP]";
+    console.log("Bot implemented yet");
+}
+        var prevValue = ""
+        const playPause = document.querySelector('#session-start');
+        playPause.onclick = function(e){
+            var message = "[START]";
+            if (prevValue == "Pause"){
+                message = "[PAUSE]";
+                playPause.value = "Resume"
+            }else if(prevValue == "Resume"){
+                message = "[RESUME]";
+                playPause.value = "Pause"
+            }else{
+                playPause.value = "Pause"
+            }
+            sessionSocket.send(JSON.stringify({
+                'cmd': message
+            }));
+           prevValue = playPause.value
+        }
+    </script>
+</body>
+</html>
