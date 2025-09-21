@@ -6,7 +6,7 @@ from core.email_sender import send_otp_email
 from core.json_serializer import extract_fields, extract_error
 from core.jwt_decoded import JwtChecks
 from core.otp_generator import get_otp
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.http import HttpResponse
@@ -26,6 +26,7 @@ from .acct_statuses import VERIFIED, UNVERIFIED
 from .models import UserProfile, EmailOtpValidation
 from .serializers.register_serializer import RegisterSerializer, EditProfileSerializer
 from .serializers.token_serializer import AppTokenObtainPairSerializer
+from core.sanitizers import normalize
 
 
 class LoginTokenView(TokenObtainPairView):
@@ -37,13 +38,14 @@ class LoginTokenView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
-            user = UserProfile.objects.get_by_natural_key(username=request.data['username'])
-
-            # if user.account_status == UNVERIFIED:
-            #     send_otp_email(user.email, user.first_name, user)
+            print("user__user02", serializer.validated_data)
+            user = authenticate(username=request.data['username'],
+                                password=request.data['password'])
+            print("user__user", user.email, user.first_name, user)
+            if user.account_status == UNVERIFIED:
+                send_otp_email(user.email, user.first_name, user)
 
         except Exception as e:
-            print(e)
             return Response({
                 "message": f"{e}",
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -75,12 +77,13 @@ class OnboardingOtp(generics.CreateAPIView, APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            user = UserProfile.objects.filter(cust_id=request.data['cust_id'])[0]
+            user = UserProfile.objects.get(cust_id=request.data['cust_id'])
             if not self.jwtChecks.valid_token_email(request, user.email):
                 raise Exception("Email don't match token")
             otp = EmailOtpValidation.objects.filter(otp=request.data['otp']).filter(
                 cust_profile=user
             )
+
             if otp.exists():
                 otp_data = otp[0]
                 if otp_data.expired_at < timezone.now():
@@ -150,14 +153,14 @@ class RegisterView(generics.CreateAPIView):
         #     cust_id=validated_data.get('cust_id'))
 
         user = UserProfile.objects.create(
-            username=validated_data.get('email'),
-            email=validated_data.get('email'),
-            cust_id=validated_data.get('cust_id'),
-            first_name=validated_data.get('first_name'),
-            last_name=validated_data.get('last_name'),
-            cust_phone=validated_data.get('cust_phone'),
-            image_url=validated_data.get('image_url'),
-            password=validated_data.get('password'),
+            username=normalize(validated_data.get('email')),
+            email=normalize(validated_data.get('email')),
+            cust_id=normalize(validated_data.get('cust_id')),
+            first_name=normalize(validated_data.get('first_name')),
+            last_name=normalize(validated_data.get('last_name')),
+            cust_phone=normalize(validated_data.get('cust_phone')),
+            image_url=normalize(validated_data.get('image_url')),
+            password=normalize(validated_data.get('password')),
             # user_country=country[0],
             uid=get_otp()
         )
@@ -174,10 +177,6 @@ class RegisterView(generics.CreateAPIView):
             user = self.create_user(request.data, baseurl)
             token_class = AppTokenObtainPairSerializer
 
-            # country = json.loads(serializers.serialize('json',
-            #                                            [user.user_country, ]))
-            # fields = country[0]['fields']
-
             try:
                 send_otp_email(user.email, user.first_name, user)
             except Exception as e:
@@ -192,10 +191,10 @@ class RegisterView(generics.CreateAPIView):
                         "email": user.email,
                         "pub_uid": user.uid,
                         "acct_status": user.account_status,
+                        "image_url": user.image_url
                     }
                 }, status=status.HTTP_200_OK)
         except Exception as e:
-            print("country_code01", e)
             error_dict = dict(e.__dict__.get('detail'))
             detail = list(error_dict.values())[-1]
             field = list(error_dict.keys())[-1]
