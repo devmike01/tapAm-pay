@@ -57,7 +57,7 @@ def send_otp_email(to_email: str, first_name: str, user):
     }
     EmailOtpValidation.objects.create(otp=email_otp,
                                       expired_at=timezone.now() + timezone.timedelta(
-                                          minutes=5),
+                                          seconds=5),
                                       cust_profile=user)
 
     html_message = render_to_string(template_name='email/otp.html',

@@ -1,21 +1,16 @@
-import requests
-from django.test import TestCase
+import base64
 
-# Create your tests here.
+# Define your client ID and secret key
+client_id = "IKIAFC1EB44661640CDEBE0E61E84083EDED1E3AFC72"
+secret_key = "3C202BF6988A732133BA9B71891DB1C7C2D60622"
 
+# Concatenate with a colon
+concatenated_string = f"{client_id}:{secret_key}"
 
-def get(url, params=None):
-    monify_headers = {
-        "Authorization": "Basic TUtfVEVTVF8wOENRN0xVUVVLOkpKRkRNOU1QUEpSRUNBTUU2S1cwODhFOFU5VlE4MEhG",
-        # If authentication is required
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
+# Encode to Base64
+encoded_bytes = base64.b64encode(concatenated_string.encode("utf-8"))
+encoded_string = encoded_bytes.decode("utf-8")
 
-    response = requests.get("https://sandbox.monnify.com/api/v1/disbursements/wallet?customerEmail=test@gmail.com",
-                            headers=monify_headers)
-    response.raise_for_status()
-    return response.json()
+# Output the Base64 encoded string
+print("Base64 Encoded String:", encoded_string)
 
-
-print(get(""))

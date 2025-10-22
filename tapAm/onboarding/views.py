@@ -87,15 +87,15 @@ class OnboardingOtp(generics.CreateAPIView, APIView):
             if otp.exists():
                 otp_data = otp[0]
                 if otp_data.expired_at < timezone.now():
-                    otp.delete()
-                otp.delete()  # OTP was validated. We no longer need it
-                user.account_status = VERIFIED
+                    user.account_status = VERIFIED
+                else:
+                    user.account_status = UNVERIFIED
+                otp.delete()
                 user.save()
                 return Response({"data": extract_fields(otp_data)})
-            return Response({"message": "Invalid otp"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            raise Exception("Provided OTP is not valid")
         except Exception as ex:
-            return Response({"message": "Unable to validate the provided OTP. Please, try again."},
+            return Response({"message": str(ex)},
                             status=status.HTTP_403_FORBIDDEN)
 
     # Send OTP
@@ -107,7 +107,7 @@ class OnboardingOtp(generics.CreateAPIView, APIView):
                 otp_data = otp[0]
                 if otp_data.expired_at > timezone.now():
                     return Response({"message": f"Wait for "
-                                                f"{round((otp_data.expired_at - timezone.now()).total_seconds())}"},
+                                                f"{round((otp_data.expired_at - timezone.now()).total_seconds())} seconds"},
                                     status=status.HTTP_403_FORBIDDEN)
                 else:
                     # Delete column data if an otp already exists

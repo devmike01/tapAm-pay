@@ -20,6 +20,7 @@ class UserProfile(AbstractUser, PermissionsMixin):
         (SUSPENDED, "suspended"),
         (UNVERIFIED, "Unverified")
     )
+    service_auth = models.CharField(default='', null=True)
     account_status = models.CharField(max_length=15, default=UNVERIFIED, choices=ACCT_STATUS)
     objects = CustomUserManager()
 

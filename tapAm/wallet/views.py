@@ -27,9 +27,10 @@ load_dotenv(dotenv_path)
 # Create your views here.
 class CreateWallet(AuthenticatedCreateApiView):
 
-    def __init__(self, monify: MonifyService, api_result: ApiResult):
-        self.monify = monify
-        self.api_result = api_result
+    def __init__(self):
+        container = wireup.create_sync_container(services=[MonifyService, ApiResult])
+        self.monify = container.get(MonifyService)
+        self.api_result = container.get(ApiResult)
 
     def post(self, request, *args, **kwargs):
 

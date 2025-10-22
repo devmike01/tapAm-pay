@@ -34,12 +34,7 @@ class MonifyService:
         return self.post(wallet, client_request)
 
     def make_single_transfer(self, client_request):
-        token = self.post(authToken, {})
-        print('token', token['responseBody']['accessToken'])
-        return self.post(singleTransfer, client_request,
-                         headers={
-                             "Authorization": f"Bearer {token['responseBody']['accessToken']}"
-                         })
+        return self.post(singleTransfer, client_request,)
 
     def get_wallets_by_email(self, customer_email) -> Response:  # ?pageSize=10&pageNo=0
         response = self.get(wallet, params={
