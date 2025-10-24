@@ -29,7 +29,8 @@ SECRET_KEY = 'django-insecure-!vp1j0_-y@n*^20q#&s(60g9hdxnnuo+lyllzri!)wv2c3ef6b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "192.168.0.50", "127.0.0.1", "afv5pbdd1pfa.share.zrok.io"]
+ALLOWED_HOSTS = ["localhost", "192.168.0.50",
+                 "127.0.0.1", "afv5pbdd1pfa.share.zrok.io"]
 
 CORS_ALLOW_CREDENTIALS = True
 # Application definition
@@ -147,7 +148,6 @@ CHANNEL_LAYERS = {
 
 # Database
 # https://docs.djangoprojecpython manage.py migrate --fake queue zerot.com/en/4.2/ref/settings/#databases
-
 DATABASES = { # aws-1-eu-west-2.pooler.supabase.com
     'default': { 
         'ENGINE': 'django.db.backends.postgresql',

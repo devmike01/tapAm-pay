@@ -1,16 +1,29 @@
+import json
+
 import requests
+import wireup
 from requests import Response, HTTPError
+from urllib3 import HTTPResponse
 from wireup import service
 
 from .headers import monify_header
-from .endpoints import wallet, singleTransfer, authToken
+from .endpoints import wallet, singleTransfer, authToken, singleOTPValidation
+from .tapam import TapAmService
+
+
+def get_request_key(func):
+    try:
+        return func()
+    except KeyError as ke:
+        raise Exception(f"{ke.__str__()} is missing from your request")
 
 
 @service
 class MonifyService:
 
     def __init__(self):
-        pass
+        container = wireup.create_sync_container(services=[TapAmService])
+        self.tapam_service = container.get(TapAmService)
 
     def post(self, url, client_request, headers=monify_header):
         print('monify_header', headers)
@@ -33,8 +46,31 @@ class MonifyService:
     def create_wallet(self, client_request):
         return self.post(wallet, client_request)
 
-    def make_single_transfer(self, client_request):
-        return self.post(singleTransfer, client_request,)
+    def make_single_transfer(self, client_request, headers):
+        client_request = json.loads(client_request)
+        pay_token_request = {
+            'request_id': get_request_key(lambda: client_request['reference']),
+            'device_id': get_request_key(lambda: client_request['deviceId'])
+        }
+        pay_token_headers = {
+            'X-OFFLINE': get_request_key(lambda: headers['X-OFFLINE']),
+            'X-SUB-MID': get_request_key(lambda: headers['X-SUB-MID'])
+        }
+
+        print("pay_token_headers", pay_token_request)
+        validation_result_json = None
+        try:
+            validation_result = self.tapam_service.validate_token(json.dumps(pay_token_request), pay_token_headers)
+            validation_result_json = validation_result.json()
+            validation_result.raise_for_status()
+            print("validation_result", validation_result_json)
+            is_valid = validation_result_json.get("state") == 'IN_USE'
+            if is_valid:
+                return self.post(singleTransfer, client_request, )
+        except requests.exceptions.HTTPError as e:
+            # {'data': None, 'error': 'Provided payment token is invalid'}
+            print("validation_result", validation_result_json)
+            raise TypeError(validation_result_json['error'])
 
     def get_wallets_by_email(self, customer_email) -> Response:  # ?pageSize=10&pageNo=0
         response = self.get(wallet, params={
@@ -42,7 +78,20 @@ class MonifyService:
         })
         return response
 
+    def validate_otp(self, client_request):
+        response = self.post(singleOTPValidation, client_request)
+        return response["responseBody"]
 
+    def generate_token(self):
+        result = self.post(authToken, client_request={})
+        return result["responseBody"]['accessToken']
+
+    def confirm_tapam_pay_token(self, headers, request_id: str, status: str):
+        request = {
+            'request_id': request_id,
+            'status': status
+        }
+        return self.tapam_service.confirm_pay_token(request, headers)
 
 # single-transfer = {
 #     "amount": 200,

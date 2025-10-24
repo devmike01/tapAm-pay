@@ -1,14 +1,20 @@
 monifyApi = 'https://sandbox.monnify.com/api/v1'
 monifyApiV2 = 'https://sandbox.monnify.com/api/v2'
 
+
 disbursement = f'{monifyApi}/disbursements'
+disbursementV2 = f'{monifyApiV2}/disbursements'
+
 wallet = f'{disbursement}/wallet'
 auth = f'{monifyApi}/auth'
 walletBalance = f'{wallet}/balance'
 walletTransactions = f'{wallet}/transactions'
 # https://sandbox.monnify.com/api/v2/disbursements/single
+
 singleTransfer = f'{monifyApiV2}/disbursements/single'
 authToken = f'{auth}/login'
+singleOTPValidation = f'{singleTransfer}/validate-otp'
+# https://sandbox.monnify.com/api/v2/disbursements/single/validate-otp
 
 
 

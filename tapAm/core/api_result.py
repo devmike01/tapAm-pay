@@ -13,6 +13,7 @@ class ApiResult:
 
     def success(self, data):
         self.result['success'] = data
+        return self
 
     def failed(self, msg):
         self.result['error'] = msg
