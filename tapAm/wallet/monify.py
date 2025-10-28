@@ -2,8 +2,9 @@ import json
 
 import requests
 import wireup
-from requests import Response, HTTPError
-from urllib3 import HTTPResponse
+from requests import HTTPError
+from rest_framework import status
+from rest_framework.response import Response
 from wireup import service
 
 from .headers import monify_header
@@ -63,8 +64,9 @@ class MonifyService:
             validation_result = self.tapam_service.validate_token(json.dumps(pay_token_request), pay_token_headers)
             validation_result_json = validation_result.json()
             validation_result.raise_for_status()
-            print("validation_result", validation_result_json)
-            is_valid = validation_result_json.get("state") == 'IN_USE'
+            validation_data = validation_result_json['data']
+            print("validation_result_json", validation_data)
+            is_valid = validation_data.get("status") == 'IN_USE'
             if is_valid:
                 return self.post(singleTransfer, client_request, )
         except requests.exceptions.HTTPError as e:

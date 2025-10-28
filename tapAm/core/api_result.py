@@ -17,6 +17,11 @@ class ApiResult:
 
     def failed(self, msg):
         self.result['error'] = msg
+        return self
+
+    def error_response(self, msg):
+        self.failed(msg)
+        return Response(data=self.result, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self) -> dict:
         return self.result

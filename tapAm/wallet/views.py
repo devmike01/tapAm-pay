@@ -1,5 +1,6 @@
 import json
 import os
+import traceback
 from os.path import join, dirname
 
 import requests
@@ -70,7 +71,8 @@ class GetWallets(AuthenticatedAPIView):
 
 class SingleTransfer(generics.CreateAPIView):
 
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []  # No authentication required
+    permission_classes = (AllowAny,)
 
     def __init__(self, **kwargs):
         container = wireup.create_sync_container(services=[ApiResult, MonifyService])
@@ -87,9 +89,10 @@ class SingleTransfer(generics.CreateAPIView):
             )
             return self.api_result.success(single_transfer["responseBody"]).to_response()
         except Exception as ex:
-            print(f'error -> {ex}', ex)
-            self.api_result.failed(str(ex))
-            return self.api_result.to_response()
+            print(f'error001 -> {ex}', ex)
+            traceback.print_exc()
+            return self.api_result.error_response(str(ex))
+           # return self.api_result.to_response()
 
 
 class TransferOTPValidation(generics.CreateAPIView):

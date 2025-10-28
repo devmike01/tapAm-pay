@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-!vp1j0_-y@n*^20q#&s(60g9hdxnnuo+lyllzri!)wv2c3ef6b
 DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "192.168.0.50",
-                 "127.0.0.1", "afv5pbdd1pfa.share.zrok.io"]
+                 "127.0.0.1", "j1b55wlrluba.share.zrok.io"]
 
 CORS_ALLOW_CREDENTIALS = True
 # Application definition
@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'wallet.middleware.RequestResponseLoggerMiddleware'
 ]
 
 CACHES = {
@@ -241,3 +242,46 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# myproject/settings.py
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'django_requests.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'tapAm.middleware': { # This matches the logger name in your middleware
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
