@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-!vp1j0_-y@n*^20q#&s(60g9hdxnnuo+lyllzri!)wv2c3ef6b
 DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "192.168.0.50",
-                 "127.0.0.1", "j1b55wlrluba.share.zrok.io"]
+                 "127.0.0.1", "1lg9qfab49ln.share.zrok.io"]
 
 CORS_ALLOW_CREDENTIALS = True
 # Application definition

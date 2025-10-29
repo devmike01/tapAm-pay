@@ -26,4 +26,4 @@ class TapAmService:
     def confirm_pay_token(self, client_request, headers):
         return requests.post(confirmTransactionApi,
                              headers={**headers, **self.headers},
-                             data=client_request)
+                             json=client_request)

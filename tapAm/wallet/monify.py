@@ -27,10 +27,11 @@ class MonifyService:
         self.tapam_service = container.get(TapAmService)
 
     def post(self, url, client_request, headers=monify_header):
-        print('monify_header', headers)
+        print('MAKING_CALL:', url, headers, client_request)
         response = requests.post(url, headers=headers,
-                                 data=client_request)
+                                 json=client_request)
         json_response = response.json()
+        print('RESPONSE:', url, json_response)
         if not json_response.get('requestSuccessful'):
             msg = json_response.get('responseMessage')
             raise HTTPError(msg if msg else 'An unknown error has occurred. Please try again!')
@@ -66,9 +67,10 @@ class MonifyService:
             validation_result.raise_for_status()
             validation_data = validation_result_json['data']
             print("validation_result_json", validation_data)
-            is_valid = validation_data.get("status") == 'IN_USE'
+            is_valid = validation_data.get("status") == 'IN_USE' # todo: investigate this later
+            print("client_request", client_request)
             if is_valid:
-                return self.post(singleTransfer, client_request, )
+                return self.post(singleTransfer, client_request=client_request, )
         except requests.exceptions.HTTPError as e:
             # {'data': None, 'error': 'Provided payment token is invalid'}
             print("validation_result", validation_result_json)
@@ -81,8 +83,10 @@ class MonifyService:
         return response
 
     def validate_otp(self, client_request):
-        response = self.post(singleOTPValidation, client_request)
-        return response["responseBody"]
+
+        response = self.post(singleOTPValidation, client_request=client_request)
+        response_json = response.json()
+        return response_json["responseBody"]
 
     def generate_token(self):
         result = self.post(authToken, client_request={})

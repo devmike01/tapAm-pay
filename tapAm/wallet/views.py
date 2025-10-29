@@ -107,10 +107,10 @@ class TransferOTPValidation(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            print('data_request:', str(json.dumps(request.data)))
             transfer_otp_result = self.monify.validate_otp(
-                client_request=json.dumps(request.data)
+                client_request=request.data
             )
+            print('data_request0001:', str(transfer_otp_result))
             otp_validation_state: str = transfer_otp_result['responseMessage']
             if otp_validation_state.lower() != "success":
                 raise TypeError(otp_validation_state)
@@ -126,5 +126,6 @@ class TransferOTPValidation(generics.CreateAPIView):
                 raise HTTPError(result['error'])
             return self.api_result.success(response_body).to_response()
         except Exception as ex:
+            traceback.print_exc()
             self.api_result.failed(str(ex))
             return self.api_result.to_response()
