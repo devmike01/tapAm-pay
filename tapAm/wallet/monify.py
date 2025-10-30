@@ -50,6 +50,7 @@ class MonifyService:
 
     def make_single_transfer(self, client_request, headers):
         client_request = json.loads(client_request)
+        print("validation_client_request", client_request)
         pay_token_request = {
             'request_id': get_request_key(lambda: client_request['reference']),
             'device_id': get_request_key(lambda: client_request['deviceId'])
@@ -59,10 +60,10 @@ class MonifyService:
             'X-SUB-MID': get_request_key(lambda: headers['X-SUB-MID'])
         }
 
-        print("pay_token_headers", pay_token_request)
         validation_result_json = None
         try:
-            validation_result = self.tapam_service.validate_token(json.dumps(pay_token_request), pay_token_headers)
+            validation_result = self.tapam_service.validate_token(pay_token_request, pay_token_headers)
+            print("validation_result", validation_result)
             validation_result_json = validation_result.json()
             validation_result.raise_for_status()
             validation_data = validation_result_json['data']
@@ -83,21 +84,21 @@ class MonifyService:
         return response
 
     def validate_otp(self, client_request):
-
-        response = self.post(singleOTPValidation, client_request=client_request)
-        response_json = response.json()
-        return response_json["responseBody"]
+        return self.post(singleOTPValidation, client_request=client_request)
 
     def generate_token(self):
         result = self.post(authToken, client_request={})
         return result["responseBody"]['accessToken']
 
-    def confirm_tapam_pay_token(self, headers, request_id: str, status: str):
+    def confirm_tapam_pay_token(self, request_id: str, status: str):
         request = {
             'request_id': request_id,
             'status': status
         }
-        return self.tapam_service.confirm_pay_token(request, headers)
+        pay_token_confirmation = self.tapam_service.confirm_pay_token(request)
+        pay_token_confirmation_json = pay_token_confirmation.json()
+        pay_token_confirmation.raise_for_status()
+        return pay_token_confirmation_json
 
 # single-transfer = {
 #     "amount": 200,

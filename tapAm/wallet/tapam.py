@@ -1,8 +1,9 @@
 import requests
 from wireup import service
 
-payTokenValidationApi = 'https://a0c3774add1d.ngrok-free.app/offline/use'
-confirmTransactionApi = 'https://a0c3774add1d.ngrok-free.app/offline/update-state'
+
+payTokenValidationApi = 'https://b18e10dc602e.ngrok-free.app/offline/use'
+confirmTransactionApi = 'https://b18e10dc602e.ngrok-free.app/offline/update-state'
 
 tapAmSubMid = 'X-SUB-MID'
 tapAmOfflineToken = 'X-OFFLINE'
@@ -21,9 +22,9 @@ class TapAmService:
     def validate_token(self, client_request, headers):
         return requests.post(payTokenValidationApi,
                              headers={**headers, **self.headers},
-                             data=client_request)
+                             json=client_request)
 
-    def confirm_pay_token(self, client_request, headers):
+    def confirm_pay_token(self, client_request):
         return requests.post(confirmTransactionApi,
-                             headers={**headers, **self.headers},
+                             headers=self.headers,
                              json=client_request)

@@ -115,16 +115,11 @@ class TransferOTPValidation(generics.CreateAPIView):
             if otp_validation_state.lower() != "success":
                 raise TypeError(otp_validation_state)
             response_body = transfer_otp_result['responseBody']
-            tapam_headers = {
-                tapAmSubMid: request.headers[tapAmSubMid],
-                tapAmOfflineToken: request.headers[tapAmOfflineToken]
-            }
-            result = self.monify.confirm_tapam_pay_token(headers=tapam_headers,
-                                                         request_id=response_body['reference'],
+
+            result_json = self.monify.confirm_tapam_pay_token(request_id=response_body['reference'],
                                                          status="success")
-            if result['data'] is None:
-                raise HTTPError(result['error'])
-            return self.api_result.success(response_body).to_response()
+
+            return self.api_result.success({**response_body, **result_json}).to_response()
         except Exception as ex:
             traceback.print_exc()
             self.api_result.failed(str(ex))
