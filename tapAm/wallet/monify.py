@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from wireup import service
 
 from .headers import monify_header
-from .endpoints import wallet, singleTransfer, authToken, singleOTPValidation
+from .endpoints import wallet, singleTransfer, authToken, singleOTPValidation, walletBalance
 from .tapam import TapAmService
 
 
@@ -41,7 +41,9 @@ class MonifyService:
         response = requests.get(url, params=params,
                                 headers=monify_header)
         json_response = response.json()
+        print('RESPONSE:', url, json_response)
         if not json_response.get('requestSuccessful'):
+            print('json_response001', json_response)
             raise HTTPError(json_response["responseMessage"])
         return json_response
 
@@ -53,11 +55,11 @@ class MonifyService:
         print("validation_client_request", client_request)
         pay_token_request = {
             'request_id': get_request_key(lambda: client_request['reference']),
-            'device_id': get_request_key(lambda: client_request['deviceId'])
+            'device_id': get_request_key(lambda: client_request['deviceId']),
+            'token_id': get_request_key(lambda: client_request['tokenId']),
         }
         pay_token_headers = {
-            'X-OFFLINE': get_request_key(lambda: headers['X-OFFLINE']),
-            'X-SUB-MID': get_request_key(lambda: headers['X-SUB-MID'])
+            'X-OFFLINE': get_request_key(lambda: headers['X-OFFLINE'])
         }
 
         validation_result_json = None
@@ -81,10 +83,17 @@ class MonifyService:
         response = self.get(wallet, params={
             'customerEmail': customer_email
         })
+        print("response_json", response)
         return response
 
     def validate_otp(self, client_request):
         return self.post(singleOTPValidation, client_request=client_request)
+
+    def get_wallet_balance(self, acct_number):
+        return self.get(walletBalance, params={
+            'accountNumber': acct_number,
+           # 'accountNumber':
+        })
 
     def generate_token(self):
         result = self.post(authToken, client_request={})

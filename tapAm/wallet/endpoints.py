@@ -7,15 +7,13 @@ disbursementV2 = f'{monifyApiV2}/disbursements'
 
 wallet = f'{disbursement}/wallet'
 auth = f'{monifyApi}/auth'
-walletBalance = f'{wallet}/balance'
+walletBalance = f'{disbursementV2}/wallet-balance'
 walletTransactions = f'{wallet}/transactions'
 # https://sandbox.monnify.com/api/v2/disbursements/single
 
 singleTransfer = f'{monifyApiV2}/disbursements/single'
 authToken = f'{auth}/login'
 singleOTPValidation = f'{singleTransfer}/validate-otp'
-# https://sandbox.monnify.com/api/v2/disbursements/single/validate-otp
-
 
 
 # curl -H "Accept: application/json"

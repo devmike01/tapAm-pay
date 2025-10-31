@@ -51,15 +51,17 @@ class CreateWallet(AuthenticatedCreateApiView):
 
 class GetWallets(AuthenticatedAPIView):
 
+    permission_classes = [AllowAny]
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def get(self, request):
         try:
-            self.api_result.success(self.monify.get_wallets_by_email(
+            print("request.GET", request.GET.get('email'))
+            return self.api_result.success(self.monify.get_wallets_by_email(
                 customer_email=str(request.GET.get('email'))
-            ))
-            return self.api_result.to_response()
+            )).to_response()
         except HTTPError as e:
             print(e)
             self.api_result.failed('Failed to fetch your wallet. Please, try again.')
@@ -70,7 +72,6 @@ class GetWallets(AuthenticatedAPIView):
 
 
 class SingleTransfer(generics.CreateAPIView):
-
     authentication_classes = []  # No authentication required
     permission_classes = (AllowAny,)
 
@@ -92,11 +93,10 @@ class SingleTransfer(generics.CreateAPIView):
             print(f'error001 -> {ex}', ex)
             traceback.print_exc()
             return self.api_result.error_response(str(ex))
-           # return self.api_result.to_response()
+        # return self.api_result.to_response()
 
 
 class TransferOTPValidation(generics.CreateAPIView):
-
     permission_classes = [AllowAny]
 
     def __init__(self, **kwargs):
@@ -117,10 +117,38 @@ class TransferOTPValidation(generics.CreateAPIView):
             response_body = transfer_otp_result['responseBody']
 
             result_json = self.monify.confirm_tapam_pay_token(request_id=response_body['reference'],
-                                                         status="success")
+                                                              status="success")
 
             return self.api_result.success({**response_body, **result_json}).to_response()
         except Exception as ex:
             traceback.print_exc()
             self.api_result.failed(str(ex))
             return self.api_result.to_response()
+
+
+class WalletBalance(generics.RetrieveAPIView):
+
+    permission_classes = [AllowAny]
+
+    def __init__(self, **kwargs):
+        container = wireup.create_sync_container(services=[ApiResult, MonifyService])
+        self.api_result = container.get(ApiResult)
+        self.monify = container.get(MonifyService)
+        super().__init__(**kwargs)
+
+    def get(self, request, acct_number):
+        # get_wallet_balance
+        try:
+            print('acct_number', acct_number)
+            # /wallet/{ref}
+            bal_json = self.monify.get_wallet_balance(acct_number)
+            return self.api_result.success(bal_json).to_response()
+        except KeyError as ke:
+            traceback.print_exc()
+            self.api_result.failed(f"invalid wallet path({ke})")
+            return self.api_result.to_response()
+        except Exception as ex:
+            traceback.print_exc()
+            self.api_result.failed(str(ex))
+            return self.api_result.to_response()
+
