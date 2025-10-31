@@ -41,7 +41,7 @@ class MonifyService:
         response = requests.get(url, params=params,
                                 headers=monify_header)
         json_response = response.json()
-        print('RESPONSE:', url, json_response)
+        print('RESPONSE:', url, params, json_response)
         if not json_response.get('requestSuccessful'):
             print('json_response001', json_response)
             raise HTTPError(json_response["responseMessage"])
@@ -59,7 +59,8 @@ class MonifyService:
             'token_id': get_request_key(lambda: client_request['tokenId']),
         }
         pay_token_headers = {
-            'X-OFFLINE': get_request_key(lambda: headers['X-OFFLINE'])
+            'X-OFFLINE': get_request_key(lambda: headers['X-OFFLINE']),
+            'X-SUB-MID': get_request_key(lambda: headers['X-SUB-MID'])
         }
 
         validation_result_json = None
